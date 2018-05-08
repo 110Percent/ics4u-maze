@@ -3,13 +3,15 @@
 struct tile
 {
     char data;
-    bool dirs[4] = {true, true, true, true};
+    int dirs[4] = {0, 0, 0, 0};
+    bool onPath = false;
+    int pathDir;
 };
 
 class Maze
 {
   public:
-    tile tiles[128][128];
+    tile tiles[48][48];
     int height, width, startX, startY;
-    void loadFile(std::string);
+    bool loadFile(std::string);
 };

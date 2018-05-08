@@ -4,16 +4,25 @@
 
 using namespace std;
 
-void Maze::loadFile(string filename)
+bool Maze::loadFile(string filename)
 {
 
     // Load the file
     ifstream inFile;
     inFile.open(filename);
+    if (inFile.fail()){
+        cout << "Error: Maze file either could not be opened or does not exist." << endl;
+        return false;
+    }
 
     // Get the height and width of the maze
     inFile >> height;
     inFile >> width;
+
+    if (height > 20 || width > 20) {
+        cout << "Error: Maze dimensions exceed maximum size." << endl;
+        return false;
+    }
 
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
@@ -29,4 +38,6 @@ void Maze::loadFile(string filename)
 
         }
     }
+
+    return true;
 }
