@@ -13,12 +13,12 @@ using namespace std;
 bool searchMaze(Maze, int, int, int);
 void display(Maze, int, int, int);
 string printDirs[4] = {"up", "right", "down", "left"};
-int sleepTime = 20  ;
-
-int main() {
+int sleepTime = 20 ;
 
     // Create new Maze
-    Maze maze;
+    Maze topMaze;
+
+int main() {
 
     string fileName;
 
@@ -26,11 +26,11 @@ int main() {
     cin >> fileName;
 
     // Load maze file (TODO: Allow user to enter filename)
-    if (!maze.loadFile("mazes/" + fileName))
+    if (!topMaze.loadFile("mazes/" + fileName))
         return 1;   
 
     // Start solving maze recursively
-    bool found = searchMaze(maze, maze.startX, maze.startY, -1);
+    bool found = searchMaze(topMaze, topMaze.startX, topMaze.startY, 4);
     if (!found)
         cout << endl << "Maze is unsolvable!" << endl;
 
@@ -51,8 +51,14 @@ bool searchMaze(Maze maze, int x, int y, int pastDir) {
     }
 
     // Declare variables
-    int dirs[6] = {0, 1, 2, 3, 0, 1};
+    int dirs[7] = {0, 1, 2, 3, 0, 1, -1};
     bool goodPath = false;
+
+    // Mark this tile as "on the path"
+    maze.tiles[y][x].onPath = true;
+
+    // Mark this tile as 'having been touched before
+    topMaze.tiles[y][x].tapped = true;
 
 
     // Repeat for all directions (iterates if dead end found)
@@ -65,7 +71,6 @@ bool searchMaze(Maze maze, int x, int y, int pastDir) {
         //cout << maze.tiles[y][x].dirs[0] << ' ' << maze.tiles[y][x].dirs[1] << ' ' << maze.tiles[y][x].dirs[2] << ' ' << maze.tiles[y][x].dirs[3] << endl;
          cout << endl << "Cursor position: (" << x << ", " << y << "), " << ((pastDir > -1) ? "pointing " + printDirs[pastDir] : "standing still") << endl;
 
-         maze.tiles[y][x].onPath = true;
          // Don't go back and forth across the same two tiles
          if (i == dirs[pastDir + 2])
              continue;
@@ -74,50 +79,35 @@ bool searchMaze(Maze maze, int x, int y, int pastDir) {
          {
          // Go up
          case 0:
-             if (y != 0 && maze.tiles[y - 1][x].data != '#' && maze.tiles[y][x].dirs[0] < 1)
+             if (y != 0 && maze.tiles[y - 1][x].data != '#' && !topMaze.tiles[y - 1][x].tapped)
              {
                  this_thread::sleep_for(chrono::milliseconds(sleepTime));
-                 maze.tiles[y][x].dirs[0] = 1;
-
-                 // Find if the space is part of a path to the goal
                  goodPath = searchMaze(maze, x, y - 1, 0);
-                 
-                 // If all upward paths are dead ends, do not go up again
-                 if (!goodPath)
-                     maze.tiles[y][x].dirs[0] = 2;
              }
              break;
          // Right
          case 1:
-             if (x + 1 != maze.width && maze.tiles[y][x + 1].data != '#' && maze.tiles[y][x].dirs[1] < 1)
+             if (x + 1 != maze.width && maze.tiles[y][x + 1].data != '#' && !topMaze.tiles[y][x + 1].tapped)
              {
                  this_thread::sleep_for(chrono::milliseconds(sleepTime));
-                 maze.tiles[y][x].dirs[1] = 1;
                  goodPath = searchMaze(maze, x + 1, y, 1);
-                 if (!goodPath)
-                     maze.tiles[y][x].dirs[1] = 2;
              }
              break;
          // Down
          case 2:
-             if (y + 1 != maze.height && maze.tiles[y + 1][x].data != '#' && maze.tiles[y][x].dirs[2] < 1)
+             if (y + 1 != maze.height && maze.tiles[y + 1][x].data != '#' && !topMaze.tiles[y + 1][x].tapped)
              {
                  this_thread::sleep_for(chrono::milliseconds(sleepTime));
-                 maze.tiles[y][x].dirs[2] = 1;
                  goodPath = searchMaze(maze, x, y + 1, 2);
-                 if (!goodPath)
-                     maze.tiles[y][x].dirs[2] = 2;
              }
              break;
          // Left
          case 3:
-             if (x != 0 && maze.tiles[y][x - 1].data != '#' && maze.tiles[y][x].dirs[3] < 1)
+             if (x != 0 && maze.tiles[y][x - 1].data != '#' && !topMaze.tiles[y][x - 1].tapped)
              {
                  this_thread::sleep_for(chrono::milliseconds(sleepTime));
-                 maze.tiles[y][x].dirs[3] = 1;
+                 //maze.tiles[y][x].tapped = true;
                  goodPath = searchMaze(maze, x - 1, y, 3);
-                 if (!goodPath)
-                     maze.tiles[y][x].dirs[3] = 2;
              }
              break;
         }
@@ -138,7 +128,7 @@ void display(Maze maze, int x, int y, int dir) {
 
     // Clear the screen lmao
     outBuffer += string(50, '\n');
-    outBuffer += "MAZE NAVIGATOR\n\n";
+    outBuffer += "MAZE NAVIGATOR\n\nFile: " + maze.file + "\n\n";
 
     // Print the map, with the appropriate pointer inside
     for (int i = 0; i < maze.height; i++) {
@@ -156,6 +146,8 @@ void display(Maze maze, int x, int y, int dir) {
             else if (maze.tiles[i][j].data == '.') {
                 if (maze.tiles[i][j].onPath)
                     outBuffer += "\033[32m⬤ ";
+                else if (topMaze.tiles[i][j].tapped)
+                    outBuffer += "\033[91mx ";
                 else
                     outBuffer += "\033[39m. ";
             }

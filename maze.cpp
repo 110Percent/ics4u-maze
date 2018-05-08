@@ -15,6 +15,9 @@ bool Maze::loadFile(string filename)
         return false;
     }
 
+    // Set the filename property of the maze (to display)
+    file = filename;
+
     // Get the height and width of the maze
     inFile >> height;
     inFile >> width;
