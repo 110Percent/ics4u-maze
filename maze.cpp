@@ -22,7 +22,7 @@ bool Maze::loadFile(string filename)
     inFile >> height;
     inFile >> width;
 
-    if (height > 20 || width > 20) {
+    if (height > 48 || width > 48) {
         cout << "Error: Maze dimensions exceed maximum size." << endl;
         return false;
     }
